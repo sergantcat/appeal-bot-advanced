@@ -1,0 +1,79 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<div class="flex min-h-screen">
+  <%- include('../partials/sidebar') %>
+
+  <main class="flex-1 p-8">
+    <div class="mb-8 fade-in">
+      <h1 class="text-3xl font-bold text-white mb-2">Activity Logs</h1>
+      <p class="text-gray-400">Complete history of all appeal actions.</p>
+    </div>
+
+    <div class="glass-card rounded-2xl overflow-hidden fade-in">
+      <% if (logs.length === 0) { %>
+        <div class="p-12 text-center">
+          <i class="fas fa-history text-4xl text-gray-600 mb-4"></i>
+          <p class="text-gray-400">No activity logs yet.</p>
+        </div>
+      <% } else { %>
+        <div class="divide-y divide-gray-700/20">
+          <% for (const log of logs) { %>
+            <%
+              const actionColors = {
+                created: 'text-blue-400',
+                claimed: 'text-yellow-400',
+                approved: 'text-green-400',
+                denied: 'text-red-400',
+                escalated: 'text-purple-400',
+                note_added: 'text-cyan-400',
+                closed: 'text-gray-400',
+                reopened: 'text-blue-400',
+                priority_changed: 'text-orange-400',
+                evidence_requested: 'text-pink-400',
+              };
+              const actionIcons = {
+                created: 'fa-plus-circle',
+                claimed: 'fa-user',
+                approved: 'fa-check-circle',
+                denied: 'fa-times-circle',
+                escalated: 'fa-exclamation-triangle',
+                note_added: 'fa-sticky-note',
+                closed: 'fa-lock',
+                reopened: 'fa-unlock',
+                priority_changed: 'fa-flag',
+                evidence_requested: 'fa-paperclip',
+              };
+            %>
+            <div class="p-4 hover:bg-discord-blurple/5 transition flex items-start space-x-4">
+              <div class="w-10 h-10 rounded-xl bg-discord-darkest/80 flex items-center justify-center flex-shrink-0">
+                <i class="fas <%= actionIcons[log.action] || 'fa-circle-dot' %> <%= actionColors[log.action] || 'text-gray-400' %>"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center space-x-2 mb-1">
+                  <a href="/dashboard/<%= guild.id %>/appeals/<%= log.appeal_id %>" class="text-discord-blurple font-medium text-sm hover:underline">
+                    Appeal #<%= log.appeal_id %>
+                  </a>
+                  <span class="text-gray-500">-</span>
+                  <span class="text-sm capitalize <%= actionColors[log.action] || 'text-gray-400' %>"><%= log.action.replace(/_/g, ' ') %></span>
+                </div>
+                <p class="text-sm text-gray-300"><%= log.actor_tag || 'System' %></p>
+                <% if (log.details) { %>
+                  <p class="text-xs text-gray-500 mt-1 truncate"><%= log.details %></p>
+                <% } %>
+              </div>
+              <div class="text-xs text-gray-500 flex-shrink-0">
+                <%= new Date(log.created_at).toLocaleString() %>
+              </div>
+            </div>
+          <% } %>
+        </div>
+        <div class="px-6 py-4 border-t border-gray-700/30 text-sm text-gray-400">
+          Showing <%= logs.length %> log entries
+        </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+
+<%- include('../partials/footer') %>

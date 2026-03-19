@@ -1,0 +1,58 @@
+<aside class="w-64 bg-discord-sidebar/90 backdrop-blur-lg border-r border-discord-blurple/10 min-h-screen p-4">
+  <div class="mb-6">
+    <div class="flex items-center space-x-3 p-3 glass-card rounded-xl">
+      <% if (guild.iconURL()) { %>
+        <img src="<%= guild.iconURL({ size: 48 }) %>" alt="<%= guild.name %>" class="w-10 h-10 rounded-xl">
+      <% } else { %>
+        <div class="w-10 h-10 bg-discord-blurple rounded-xl flex items-center justify-center">
+          <span class="text-lg font-bold"><%= guild.name.charAt(0) %></span>
+        </div>
+      <% } %>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold text-white truncate"><%= guild.name %></p>
+        <p class="text-xs text-gray-400"><%= guild.memberCount %> members</p>
+      </div>
+    </div>
+  </div>
+
+  <nav class="space-y-1">
+    <a href="/dashboard/<%= guild.id %>"
+       class="sidebar-link flex items-center px-4 py-2.5 text-sm rounded-lg text-gray-300 <%= activeTab === 'overview' ? 'active bg-discord-blurple/15 text-white border-l-3 border-discord-blurple' : '' %>">
+      <i class="fas fa-chart-pie w-5 mr-3 text-center"></i>Overview
+    </a>
+    <a href="/dashboard/<%= guild.id %>/settings"
+       class="sidebar-link flex items-center px-4 py-2.5 text-sm rounded-lg text-gray-300 <%= activeTab === 'settings' ? 'active bg-discord-blurple/15 text-white' : '' %>">
+      <i class="fas fa-cog w-5 mr-3 text-center"></i>Settings
+    </a>
+    <a href="/dashboard/<%= guild.id %>/appeal-types"
+       class="sidebar-link flex items-center px-4 py-2.5 text-sm rounded-lg text-gray-300 <%= activeTab === 'appeal-types' ? 'active bg-discord-blurple/15 text-white' : '' %>">
+      <i class="fas fa-layer-group w-5 mr-3 text-center"></i>Appeal Types
+    </a>
+    <a href="/dashboard/<%= guild.id %>/appeals"
+       class="sidebar-link flex items-center px-4 py-2.5 text-sm rounded-lg text-gray-300 <%= activeTab === 'appeals' ? 'active bg-discord-blurple/15 text-white' : '' %>">
+      <i class="fas fa-clipboard-list w-5 mr-3 text-center"></i>Appeals
+    </a>
+    <a href="/dashboard/<%= guild.id %>/blacklist"
+       class="sidebar-link flex items-center px-4 py-2.5 text-sm rounded-lg text-gray-300 <%= activeTab === 'blacklist' ? 'active bg-discord-blurple/15 text-white' : '' %>">
+      <i class="fas fa-ban w-5 mr-3 text-center"></i>Blacklist
+    </a>
+    <a href="/dashboard/<%= guild.id %>/auto-responses"
+       class="sidebar-link flex items-center px-4 py-2.5 text-sm rounded-lg text-gray-300 <%= activeTab === 'auto-responses' ? 'active bg-discord-blurple/15 text-white' : '' %>">
+      <i class="fas fa-robot w-5 mr-3 text-center"></i>Auto Responses
+    </a>
+    <a href="/dashboard/<%= guild.id %>/templates"
+       class="sidebar-link flex items-center px-4 py-2.5 text-sm rounded-lg text-gray-300 <%= activeTab === 'templates' ? 'active bg-discord-blurple/15 text-white' : '' %>">
+      <i class="fas fa-file-alt w-5 mr-3 text-center"></i>Templates
+    </a>
+    <a href="/dashboard/<%= guild.id %>/logs"
+       class="sidebar-link flex items-center px-4 py-2.5 text-sm rounded-lg text-gray-300 <%= activeTab === 'logs' ? 'active bg-discord-blurple/15 text-white' : '' %>">
+      <i class="fas fa-history w-5 mr-3 text-center"></i>Logs
+    </a>
+  </nav>
+
+  <div class="mt-8 pt-4 border-t border-gray-700/50">
+    <a href="/dashboard" class="sidebar-link flex items-center px-4 py-2.5 text-sm rounded-lg text-gray-400 hover:text-white">
+      <i class="fas fa-arrow-left w-5 mr-3 text-center"></i>Back to Servers
+    </a>
+  </div>
+</aside>

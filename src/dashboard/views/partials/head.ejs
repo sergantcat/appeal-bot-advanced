@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            discord: {
+              dark: '#1a1a2e',
+              darker: '#16213e',
+              darkest: '#0f0f23',
+              blurple: '#5865F2',
+              green: '#57F287',
+              yellow: '#FEE75C',
+              fuchsia: '#EB459E',
+              red: '#ED4245',
+              white: '#FFFFFF',
+              greyple: '#99AAB5',
+              not_quite_black: '#23272A',
+              embed: '#2f3136',
+              card: '#1e1f2b',
+              sidebar: '#12121a',
+              input: '#1a1a2e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+      min-height: 100vh;
+    }
+    .glass-card {
+      background: rgba(30, 31, 43, 0.8);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(88, 101, 242, 0.15);
+    }
+    .glass-card:hover {
+      border-color: rgba(88, 101, 242, 0.35);
+    }
+    .glow-border {
+      box-shadow: 0 0 15px rgba(88, 101, 242, 0.1);
+    }
+    .stat-card {
+      background: linear-gradient(135deg, rgba(30, 31, 43, 0.9) 0%, rgba(22, 33, 62, 0.9) 100%);
+      border: 1px solid rgba(88, 101, 242, 0.2);
+    }
+    .sidebar-link {
+      transition: all 0.2s ease;
+    }
+    .sidebar-link:hover, .sidebar-link.active {
+      background: rgba(88, 101, 242, 0.15);
+      border-left: 3px solid #5865F2;
+    }
+    .btn-discord {
+      background: linear-gradient(135deg, #5865F2 0%, #4752C4 100%);
+      transition: all 0.2s ease;
+    }
+    .btn-discord:hover {
+      background: linear-gradient(135deg, #4752C4 0%, #3C45A5 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(88, 101, 242, 0.4);
+    }
+    .input-discord {
+      background: rgba(26, 26, 46, 0.8);
+      border: 1px solid rgba(88, 101, 242, 0.2);
+      transition: border-color 0.2s ease;
+    }
+    .input-discord:focus {
+      border-color: #5865F2;
+      box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.1);
+    }
+    .fade-in {
+      animation: fadeIn 0.3s ease-in;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .pulse-dot {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body class="text-gray-200 font-sans antialiased">
