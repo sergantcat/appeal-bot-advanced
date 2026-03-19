@@ -1,0 +1,205 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<div class="flex min-h-screen">
+  <%- include('../partials/sidebar') %>
+
+  <main class="flex-1 p-8">
+    <div class="mb-8 fade-in">
+      <h1 class="text-3xl font-bold text-white mb-2">Server Settings</h1>
+      <p class="text-gray-400">Configure channels, roles, and general settings for the appeal system.</p>
+    </div>
+
+    <% if (typeof saved !== 'undefined' || (typeof require !== 'undefined' && require('url').parse(require('url').format({query: ''})).query)) { %>
+    <% } %>
+
+    <script>
+      if (new URLSearchParams(window.location.search).get('saved')) {
+        document.addEventListener('DOMContentLoaded', () => {
+          const toast = document.createElement('div');
+          toast.className = 'fixed top-20 right-4 bg-green-500/90 text-white px-6 py-3 rounded-xl shadow-2xl z-50 fade-in flex items-center';
+          toast.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Settings saved successfully!';
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 3000);
+        });
+      }
+    </script>
+
+    <form action="/api/<%= guild.id %>/settings" method="POST" class="space-y-8">
+
+      <!-- Channel Configuration -->
+      <div class="glass-card rounded-2xl p-6 fade-in">
+        <h2 class="text-lg font-semibold text-white mb-6"><i class="fas fa-hashtag mr-2 text-discord-blurple"></i>Channel Configuration</h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Log Channel</label>
+            <select name="log_channel_id" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none">
+              <option value="">-- Select Channel --</option>
+              <% for (const ch of channels) { %>
+                <option value="<%= ch.id %>" <%= settings.log_channel_id === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
+              <% } %>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Channel where appeal logs are posted</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Statistics Channel</label>
+            <select name="stats_channel_id" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none">
+              <option value="">-- Select Channel --</option>
+              <% for (const ch of channels) { %>
+                <option value="<%= ch.id %>" <%= settings.stats_channel_id === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
+              <% } %>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Channel for appeal statistics</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Evidence Channel</label>
+            <select name="evidence_channel_id" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none">
+              <option value="">-- Select Channel --</option>
+              <% for (const ch of channels) { %>
+                <option value="<%= ch.id %>" <%= settings.evidence_channel_id === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
+              <% } %>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Channel for appeal evidence</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Discussion Channel</label>
+            <select name="discussion_channel_id" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none">
+              <option value="">-- Select Channel --</option>
+              <% for (const ch of channels) { %>
+                <option value="<%= ch.id %>" <%= settings.discussion_channel_id === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
+              <% } %>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Staff discussion channel</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Moderation Cases Channel</label>
+            <select name="moderation_channel_id" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none">
+              <option value="">-- Select Channel --</option>
+              <% for (const ch of channels) { %>
+                <option value="<%= ch.id %>" <%= settings.moderation_channel_id === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
+              <% } %>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Channel for moderation cases</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Admin Chat Channel</label>
+            <select name="admin_channel_id" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none">
+              <option value="">-- Select Channel --</option>
+              <% for (const ch of channels) { %>
+                <option value="<%= ch.id %>" <%= settings.admin_channel_id === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
+              <% } %>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Admin-only chat channel</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Role Configuration -->
+      <div class="glass-card rounded-2xl p-6 fade-in">
+        <h2 class="text-lg font-semibold text-white mb-6"><i class="fas fa-user-shield mr-2 text-discord-blurple"></i>Role Configuration</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Staff Role</label>
+            <select name="staff_role_id" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none">
+              <option value="">-- Select Role --</option>
+              <% for (const role of roles) { %>
+                <option value="<%= role.id %>" <%= settings.staff_role_id === role.id ? 'selected' : '' %>><%= role.name %></option>
+              <% } %>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Can review and manage appeals</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Admin Role</label>
+            <select name="admin_role_id" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none">
+              <option value="">-- Select Role --</option>
+              <% for (const role of roles) { %>
+                <option value="<%= role.id %>" <%= settings.admin_role_id === role.id ? 'selected' : '' %>><%= role.name %></option>
+              <% } %>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Full access to all appeal features</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Manager Role</label>
+            <select name="manager_role_id" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none">
+              <option value="">-- Select Role --</option>
+              <% for (const role of roles) { %>
+                <option value="<%= role.id %>" <%= settings.manager_role_id === role.id ? 'selected' : '' %>><%= role.name %></option>
+              <% } %>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Can view and manage escalated appeals</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- General Settings -->
+      <div class="glass-card rounded-2xl p-6 fade-in">
+        <h2 class="text-lg font-semibold text-white mb-6"><i class="fas fa-sliders-h mr-2 text-discord-blurple"></i>General Settings</h2>
+        <div class="grid md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Cooldown (seconds)</label>
+            <input type="number" name="cooldown_seconds" value="<%= settings.cooldown_seconds || 600 %>"
+                   class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none" min="0" max="86400">
+            <p class="text-xs text-gray-500 mt-1">Time between appeal submissions (600 = 10 minutes)</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Max Active Appeals</label>
+            <input type="number" name="max_active_appeals" value="<%= settings.max_active_appeals || 3 %>"
+                   class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none" min="1" max="10">
+            <p class="text-xs text-gray-500 mt-1">Maximum simultaneous active appeals per user</p>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <label class="flex items-center justify-between p-4 bg-discord-darkest/50 rounded-xl cursor-pointer hover:bg-discord-blurple/5 transition">
+            <div>
+              <p class="text-white font-medium">Auto Create Threads</p>
+              <p class="text-xs text-gray-400">Automatically create private threads for each appeal</p>
+            </div>
+            <input type="checkbox" name="auto_thread" value="1" <%= settings.auto_thread ? 'checked' : '' %>
+                   class="w-5 h-5 rounded bg-discord-darkest border-discord-blurple/30 text-discord-blurple focus:ring-discord-blurple">
+          </label>
+          <label class="flex items-center justify-between p-4 bg-discord-darkest/50 rounded-xl cursor-pointer hover:bg-discord-blurple/5 transition">
+            <div>
+              <p class="text-white font-medium">Require Evidence</p>
+              <p class="text-xs text-gray-400">Require users to provide evidence with their appeal</p>
+            </div>
+            <input type="checkbox" name="require_evidence" value="1" <%= settings.require_evidence ? 'checked' : '' %>
+                   class="w-5 h-5 rounded bg-discord-darkest border-discord-blurple/30 text-discord-blurple focus:ring-discord-blurple">
+          </label>
+          <label class="flex items-center justify-between p-4 bg-discord-darkest/50 rounded-xl cursor-pointer hover:bg-discord-blurple/5 transition">
+            <div>
+              <p class="text-white font-medium">Allow Reopening</p>
+              <p class="text-xs text-gray-400">Allow staff to reopen closed/denied appeals</p>
+            </div>
+            <input type="checkbox" name="allow_reopen" value="1" <%= settings.allow_reopen ? 'checked' : '' %>
+                   class="w-5 h-5 rounded bg-discord-darkest border-discord-blurple/30 text-discord-blurple focus:ring-discord-blurple">
+          </label>
+          <label class="flex items-center justify-between p-4 bg-discord-darkest/50 rounded-xl cursor-pointer hover:bg-discord-blurple/5 transition">
+            <div>
+              <p class="text-white font-medium">DM Notifications</p>
+              <p class="text-xs text-gray-400">Send DM updates to users when their appeal status changes</p>
+            </div>
+            <input type="checkbox" name="dm_notifications" value="1" <%= settings.dm_notifications ? 'checked' : '' %>
+                   class="w-5 h-5 rounded bg-discord-darkest border-discord-blurple/30 text-discord-blurple focus:ring-discord-blurple">
+          </label>
+          <label class="flex items-center justify-between p-4 bg-discord-darkest/50 rounded-xl cursor-pointer hover:bg-discord-blurple/5 transition">
+            <div>
+              <p class="text-white font-medium">Anonymous Appeals</p>
+              <p class="text-xs text-gray-400">Hide user identity from staff until appeal is claimed</p>
+            </div>
+            <input type="checkbox" name="anonymous_appeals" value="1" <%= settings.anonymous_appeals ? 'checked' : '' %>
+                   class="w-5 h-5 rounded bg-discord-darkest border-discord-blurple/30 text-discord-blurple focus:ring-discord-blurple">
+          </label>
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <button type="submit" class="btn-discord text-white px-8 py-3 rounded-xl font-semibold shadow-lg">
+          <i class="fas fa-save mr-2"></i>Save Settings
+        </button>
+      </div>
+    </form>
+  </main>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,133 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<div class="flex min-h-screen">
+  <%- include('../partials/sidebar') %>
+
+  <main class="flex-1 p-8">
+    <div class="flex justify-between items-center mb-8 fade-in">
+      <div>
+        <h1 class="text-3xl font-bold text-white mb-2">Auto Responses</h1>
+        <p class="text-gray-400">Configure automatic messages sent when appeal status changes.</p>
+      </div>
+      <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="btn-discord text-white px-5 py-3 rounded-xl font-medium">
+        <i class="fas fa-plus mr-2"></i>New Response
+      </button>
+    </div>
+
+    <script>
+      if (new URLSearchParams(window.location.search).get('saved')) {
+        document.addEventListener('DOMContentLoaded', () => {
+          const toast = document.createElement('div');
+          toast.className = 'fixed top-20 right-4 bg-green-500/90 text-white px-6 py-3 rounded-xl shadow-2xl z-50 fade-in flex items-center';
+          toast.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Auto response saved!';
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 3000);
+        });
+      }
+    </script>
+
+    <!-- Info Box -->
+    <div class="glass-card rounded-2xl p-4 mb-6 border border-discord-blurple/20 fade-in">
+      <p class="text-sm text-gray-300">
+        <i class="fas fa-info-circle text-discord-blurple mr-2"></i>
+        <strong>Variables:</strong> Use <code class="bg-discord-darkest px-1 rounded text-discord-blurple">{user}</code> for user mention,
+        <code class="bg-discord-darkest px-1 rounded text-discord-blurple">{appeal_id}</code> for ID,
+        <code class="bg-discord-darkest px-1 rounded text-discord-blurple">{type}</code> for appeal type,
+        <code class="bg-discord-darkest px-1 rounded text-discord-blurple">{staff}</code> for staff member,
+        <code class="bg-discord-darkest px-1 rounded text-discord-blurple">{reason}</code> for denial reason.
+      </p>
+    </div>
+
+    <div class="glass-card rounded-2xl overflow-hidden fade-in">
+      <% if (autoResponses.length === 0) { %>
+        <div class="p-12 text-center">
+          <i class="fas fa-robot text-4xl text-gray-600 mb-4"></i>
+          <p class="text-gray-400">No auto responses configured.</p>
+        </div>
+      <% } else { %>
+        <div class="divide-y divide-gray-700/20">
+          <% for (const resp of autoResponses) { %>
+            <div class="p-6 hover:bg-discord-blurple/5 transition">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center space-x-3">
+                  <span class="px-3 py-1 rounded-full text-xs font-medium bg-discord-blurple/20 text-discord-blurple capitalize">
+                    <%= resp.trigger_status.replace(/_/g, ' ') %>
+                  </span>
+                  <% if (resp.appeal_type) { %>
+                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400 capitalize">
+                      <%= resp.appeal_type %>
+                    </span>
+                  <% } %>
+                  <span class="px-2 py-1 rounded text-xs <%= resp.enabled ? 'text-green-400' : 'text-red-400' %>">
+                    <%= resp.enabled ? 'Active' : 'Disabled' %>
+                  </span>
+                  <% if (resp.dm_user) { %>
+                    <span class="text-xs text-gray-400"><i class="fas fa-envelope mr-1"></i>DM</span>
+                  <% } %>
+                </div>
+                <form action="/api/<%= guild.id %>/auto-responses/<%= resp.id %>/delete" method="POST" onsubmit="return confirm('Delete this auto response?')">
+                  <button type="submit" class="text-red-400 hover:text-red-300 transition text-sm">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+              <div class="bg-discord-darkest/50 rounded-lg p-3">
+                <p class="text-gray-300 text-sm whitespace-pre-wrap"><%= resp.message_template %></p>
+              </div>
+            </div>
+          <% } %>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Add Modal -->
+    <div id="addModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="glass-card rounded-2xl w-full max-w-lg">
+        <div class="p-6 border-b border-gray-700/30 flex justify-between items-center">
+          <h2 class="text-xl font-semibold text-white">New Auto Response</h2>
+          <button onclick="document.getElementById('addModal').classList.add('hidden')" class="text-gray-400 hover:text-white transition">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        <form action="/api/<%= guild.id %>/auto-responses" method="POST" class="p-6 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Trigger Status</label>
+              <select name="trigger_status" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none" required>
+                <option value="pending">On Submit (Pending)</option>
+                <option value="under_review">Under Review</option>
+                <option value="approved">Approved</option>
+                <option value="denied">Denied</option>
+                <option value="escalated">Escalated</option>
+                <option value="closed">Closed</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Appeal Type (optional)</label>
+              <select name="appeal_type" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none">
+                <option value="">All Types</option>
+                <% for (const t of appealTypes) { %>
+                  <option value="<%= t.type_key %>"><%= t.label %></option>
+                <% } %>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Message Template</label>
+            <textarea name="message_template" rows="4" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none resize-none" required placeholder="e.g. Hey {user}, your appeal #{appeal_id} has been received..."></textarea>
+          </div>
+          <label class="flex items-center space-x-3 cursor-pointer">
+            <input type="checkbox" name="dm_user" value="1" class="w-4 h-4 rounded bg-discord-darkest border-discord-blurple/30 text-discord-blurple focus:ring-discord-blurple">
+            <span class="text-sm text-gray-300">Also send via DM</span>
+          </label>
+          <button type="submit" class="w-full btn-discord text-white py-3 rounded-xl font-medium">
+            <i class="fas fa-plus mr-2"></i>Create Auto Response
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,337 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<div class="flex min-h-screen">
+  <%- include('../partials/sidebar') %>
+
+  <main class="flex-1 p-8">
+    <div class="flex justify-between items-center mb-8 fade-in">
+      <div>
+        <h1 class="text-3xl font-bold text-white mb-2">Appeal Types</h1>
+        <p class="text-gray-400">Configure appeal categories, their embeds, buttons, and questions.</p>
+      </div>
+      <button onclick="document.getElementById('createModal').classList.remove('hidden')" class="btn-discord text-white px-5 py-3 rounded-xl font-medium">
+        <i class="fas fa-plus mr-2"></i>New Type
+      </button>
+    </div>
+
+    <script>
+      if (new URLSearchParams(window.location.search).get('saved')) {
+        document.addEventListener('DOMContentLoaded', () => {
+          const toast = document.createElement('div');
+          toast.className = 'fixed top-20 right-4 bg-green-500/90 text-white px-6 py-3 rounded-xl shadow-2xl z-50 fade-in flex items-center';
+          toast.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Changes saved!';
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 3000);
+        });
+      }
+    </script>
+
+    <% if (appealTypes.length === 0) { %>
+      <div class="glass-card rounded-2xl p-12 text-center fade-in">
+        <div class="w-16 h-16 bg-discord-blurple/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <i class="fas fa-layer-group text-discord-blurple text-2xl"></i>
+        </div>
+        <h2 class="text-xl font-semibold text-white mb-3">No Appeal Types</h2>
+        <p class="text-gray-400 mb-6">Create appeal types or run <code class="bg-discord-darkest px-2 py-1 rounded text-discord-blurple">/setup</code> in Discord to generate defaults.</p>
+      </div>
+    <% } else { %>
+      <div class="space-y-6">
+        <% for (const type of appealTypes) { %>
+          <div class="glass-card rounded-2xl overflow-hidden fade-in">
+            <!-- Type Header -->
+            <div class="p-6 border-b border-gray-700/30">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background: <%= type.color %>20">
+                    <%= type.emoji || '📋' %>
+                  </div>
+                  <div>
+                    <h3 class="text-xl font-semibold text-white"><%= type.label %></h3>
+                    <p class="text-sm text-gray-400">Key: <code class="text-discord-blurple"><%= type.type_key %></code> | Button: <%= type.button_style %> | Channel: <%= type.channel_id ? '#' + (channels.find(c => c.id === type.channel_id) || {}).name : 'Not set' %></p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                  <span class="px-3 py-1 rounded-full text-xs font-medium <%= type.enabled ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400' %>">
+                    <%= type.enabled ? 'Active' : 'Disabled' %>
+                  </span>
+                  <button onclick="toggleEdit('type_<%= type.id %>')" class="text-gray-400 hover:text-white transition p-2">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Edit Form (hidden by default) -->
+            <div id="type_<%= type.id %>" class="hidden">
+              <form action="/api/<%= guild.id %>/appeal-types/<%= type.id %>" method="POST" class="p-6 space-y-6">
+                <div class="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Label</label>
+                    <input type="text" name="label" value="<%= type.label %>" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none" required>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Emoji</label>
+                    <input type="text" name="emoji" value="<%= type.emoji %>" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none" placeholder="e.g. 🛡️">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Channel</label>
+                    <select name="channel_id" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none">
+                      <option value="">-- Default --</option>
+                      <% for (const ch of channels) { %>
+                        <option value="<%= ch.id %>" <%= type.channel_id === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
+                      <% } %>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Button Color</label>
+                    <input type="color" name="color" value="<%= type.color || '#5865F2' %>" class="input-discord w-full rounded-xl px-4 py-3 h-12 text-white outline-none">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Button Style</label>
+                    <select name="button_style" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none">
+                      <option value="PRIMARY" <%= type.button_style === 'PRIMARY' ? 'selected' : '' %>>Primary (Blue)</option>
+                      <option value="SECONDARY" <%= type.button_style === 'SECONDARY' ? 'selected' : '' %>>Secondary (Gray)</option>
+                      <option value="SUCCESS" <%= type.button_style === 'SUCCESS' ? 'selected' : '' %>>Success (Green)</option>
+                      <option value="DANGER" <%= type.button_style === 'DANGER' ? 'selected' : '' %>>Danger (Red)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Enabled</label>
+                    <select name="enabled" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none">
+                      <option value="1" <%= type.enabled ? 'selected' : '' %>>Yes</option>
+                      <option value="0" <%= !type.enabled ? 'selected' : '' %>>No</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                  <textarea name="description" rows="2" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none resize-none"><%= type.description %></textarea>
+                </div>
+
+                <!-- Embed Settings -->
+                <div class="border-t border-gray-700/30 pt-6">
+                  <h4 class="text-md font-semibold text-white mb-4"><i class="fas fa-palette mr-2 text-purple-400"></i>Embed Appearance</h4>
+                  <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-300 mb-2">Embed Title</label>
+                      <input type="text" name="embed_title" value="<%= type.embed_title %>" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none" placeholder="e.g. 🛡️ Security Appeals">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-300 mb-2">Embed Color</label>
+                      <input type="color" name="embed_color" value="<%= type.embed_color || '#5865F2' %>" class="input-discord w-full rounded-xl px-4 py-3 h-12 text-white outline-none">
+                    </div>
+                    <div class="md:col-span-2">
+                      <label class="block text-sm font-medium text-gray-300 mb-2">Embed Description</label>
+                      <textarea name="embed_description" rows="4" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none resize-none" placeholder="The text shown in the appeal panel embed..."><%= type.embed_description %></textarea>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-300 mb-2">Thumbnail URL</label>
+                      <input type="text" name="embed_thumbnail" value="<%= type.embed_thumbnail %>" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none" placeholder="https://...">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-300 mb-2">Image URL</label>
+                      <input type="text" name="embed_image" value="<%= type.embed_image %>" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none" placeholder="https://...">
+                    </div>
+                    <div class="md:col-span-2">
+                      <label class="block text-sm font-medium text-gray-300 mb-2">Footer Text</label>
+                      <input type="text" name="embed_footer" value="<%= type.embed_footer %>" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none" placeholder="e.g. Security Appeal System">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-4">
+                  <form action="/api/<%= guild.id %>/appeal-types/<%= type.id %>/delete" method="POST" onsubmit="return confirm('Delete this appeal type and all its questions?')">
+                    <button type="submit" class="text-red-400 hover:text-red-300 transition text-sm">
+                      <i class="fas fa-trash mr-1"></i>Delete Type
+                    </button>
+                  </form>
+                  <button type="submit" class="btn-discord text-white px-6 py-2.5 rounded-xl font-medium">
+                    <i class="fas fa-save mr-2"></i>Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Questions Section -->
+            <div class="p-6 bg-discord-darkest/30">
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="text-sm font-semibold text-gray-300 uppercase tracking-wide">
+                  <i class="fas fa-question-circle mr-2 text-discord-blurple"></i>Questions (<%= type.questions.length %>/5)
+                </h4>
+                <% if (type.questions.length < 5) { %>
+                  <button onclick="toggleEdit('questions_<%= type.id %>')" class="text-discord-blurple hover:text-white transition text-sm">
+                    <i class="fas fa-plus mr-1"></i>Add Question
+                  </button>
+                <% } %>
+              </div>
+
+              <% if (type.questions.length > 0) { %>
+                <div class="space-y-2">
+                  <% for (const q of type.questions) { %>
+                    <div class="flex items-center justify-between p-3 bg-discord-dark/50 rounded-lg">
+                      <div class="flex-1">
+                        <p class="text-white text-sm font-medium"><%= q.question_label %></p>
+                        <p class="text-xs text-gray-400"><%= q.question_style %> | <%= q.required ? 'Required' : 'Optional' %> | Max: <%= q.max_length %> chars</p>
+                      </div>
+                      <form action="/api/<%= guild.id %>/questions/<%= q.id %>/delete" method="POST" class="ml-4">
+                        <button type="submit" class="text-red-400 hover:text-red-300 transition text-sm" title="Delete question">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </form>
+                    </div>
+                  <% } %>
+                </div>
+              <% } else { %>
+                <p class="text-gray-500 text-sm">No custom questions. Default questions will be used.</p>
+              <% } %>
+
+              <!-- Add Question Form (hidden) -->
+              <div id="questions_<%= type.id %>" class="hidden mt-4">
+                <form action="/api/<%= guild.id %>/appeal-types/<%= type.id %>/questions" method="POST" class="glass-card rounded-xl p-4 space-y-4">
+                  <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-300 mb-1">Question Label</label>
+                      <input type="text" name="question_label" class="input-discord w-full rounded-lg px-3 py-2 text-white outline-none text-sm" required placeholder="e.g. Why were you banned?" maxlength="45">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-300 mb-1">Placeholder</label>
+                      <input type="text" name="question_placeholder" class="input-discord w-full rounded-lg px-3 py-2 text-white outline-none text-sm" placeholder="Hint text..." maxlength="100">
+                    </div>
+                  </div>
+                  <div class="grid md:grid-cols-3 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-300 mb-1">Style</label>
+                      <select name="question_style" class="input-discord w-full rounded-lg px-3 py-2 text-white outline-none text-sm">
+                        <option value="short">Short (single line)</option>
+                        <option value="paragraph">Paragraph (multi-line)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-300 mb-1">Required</label>
+                      <select name="required" class="input-discord w-full rounded-lg px-3 py-2 text-white outline-none text-sm">
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-300 mb-1">Max Length</label>
+                      <input type="number" name="max_length" value="1024" class="input-discord w-full rounded-lg px-3 py-2 text-white outline-none text-sm" min="1" max="4000">
+                    </div>
+                  </div>
+                  <button type="submit" class="btn-discord text-white px-4 py-2 rounded-lg text-sm">
+                    <i class="fas fa-plus mr-2"></i>Add Question
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    <% } %>
+
+    <!-- Create New Type Modal -->
+    <div id="createModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="glass-card rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-gray-700/30 flex justify-between items-center">
+          <h2 class="text-xl font-semibold text-white">Create New Appeal Type</h2>
+          <button onclick="document.getElementById('createModal').classList.add('hidden')" class="text-gray-400 hover:text-white transition">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        <form action="/api/<%= guild.id %>/appeal-types" method="POST" class="p-6 space-y-4">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Type Key</label>
+              <input type="text" name="type_key" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none" required placeholder="e.g. security">
+              <p class="text-xs text-gray-500 mt-1">Unique identifier (lowercase, no spaces)</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Label</label>
+              <input type="text" name="label" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none" required placeholder="e.g. Security">
+            </div>
+          </div>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Emoji</label>
+              <input type="text" name="emoji" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none" placeholder="e.g. 🛡️">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Color</label>
+              <input type="color" name="color" value="#5865F2" class="input-discord w-full rounded-xl px-4 py-3 h-12 text-white outline-none">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Button Style</label>
+              <select name="button_style" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none">
+                <option value="PRIMARY">Primary (Blue)</option>
+                <option value="SECONDARY">Secondary (Gray)</option>
+                <option value="SUCCESS">Success (Green)</option>
+                <option value="DANGER">Danger (Red)</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Channel</label>
+            <select name="channel_id" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none">
+              <option value="">-- Default Channel --</option>
+              <% for (const ch of channels) { %>
+                <option value="<%= ch.id %>">#<%= ch.name %></option>
+              <% } %>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+            <textarea name="description" rows="2" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none resize-none" placeholder="Brief description of this appeal type..."></textarea>
+          </div>
+          <div class="border-t border-gray-700/30 pt-4">
+            <h4 class="text-md font-semibold text-white mb-4">Embed Appearance</h4>
+            <div class="grid md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Embed Title</label>
+                <input type="text" name="embed_title" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none" placeholder="e.g. 🛡️ Security Appeals">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Embed Color</label>
+                <input type="color" name="embed_color" value="#5865F2" class="input-discord w-full rounded-xl px-4 py-3 h-12 text-white outline-none">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Embed Description</label>
+                <textarea name="embed_description" rows="3" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none resize-none" placeholder="Text shown in the appeal panel..."></textarea>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Thumbnail URL</label>
+                <input type="text" name="embed_thumbnail" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none" placeholder="https://...">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Image URL</label>
+                <input type="text" name="embed_image" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none" placeholder="https://...">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Footer</label>
+                <input type="text" name="embed_footer" class="input-discord w-full rounded-xl px-4 py-3 text-white outline-none" placeholder="Footer text...">
+              </div>
+            </div>
+          </div>
+          <div class="flex justify-end pt-4">
+            <button type="submit" class="btn-discord text-white px-6 py-3 rounded-xl font-medium">
+              <i class="fas fa-plus mr-2"></i>Create Appeal Type
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+function toggleEdit(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('hidden');
+}
+</script>
+
+<%- include('../partials/footer') %>
